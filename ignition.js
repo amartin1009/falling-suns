@@ -31,7 +31,7 @@
 (function () {
   const $ = id => document.getElementById(id);
   const tap = b => { b.classList.add('down'); setTimeout(() => b.classList.remove('down'), 140); };
-  $('rbSeekL').onclick = e => { tap(e.currentTarget); document.getElementById('prev').click(); };
-  $('rbSeekR').onclick = e => { tap(e.currentTarget); document.getElementById('next').click(); };
+  $('rbSeekL').onclick = e => { tap(e.currentTarget); window.dashStation && window.dashStation(-1); };
+  $('rbSeekR').onclick = e => { tap(e.currentTarget); window.dashStation && window.dashStation(1); };
   $('rbPlay').onclick = e => { tap(e.currentTarget); window.dashMusic && window.dashMusic('toggle'); };
 })();

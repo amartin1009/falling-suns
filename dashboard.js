@@ -74,38 +74,67 @@
   $('sigR').onclick = () => { blink($('sigR')); document.getElementById('next').click(); };
   document.addEventListener('keydown', e => { if (e.key === 'ArrowLeft') blink($('sigL')); if (e.key === 'ArrowRight') blink($('sigR')); });
 
-  // ---------- head unit: audio from a YouTube video, driven by the push-start button ----------
-  const YT_VIDEO = 'ZhIWWecwhpg';   // Nana - King's Blvd 2
-  const START_AT = 17;              // seconds into the song to start (and loop back to)
-  let player = null, ready = false, pending = null, playing = false, everPlayed = false;
-  const LCD_ON = "FM 87.9 &nbsp;·&nbsp; NOW PLAYING &nbsp;·&nbsp; KING'S BLVD 2 &nbsp;·&nbsp; FALLING SUNS &nbsp;·&nbsp; TIJUANA AFTER DARK &nbsp;·&nbsp;";
-  const LCD_OFF = "AUX &nbsp;·&nbsp; READY &nbsp;·&nbsp; PUSH START TO PLAY &nbsp;·&nbsp; KING'S BLVD 2 &nbsp;·&nbsp;";
+  // ---------- head unit: radio stations (YouTube audio), driven by the push-start button ----------
+  const STATIONS = [
+    { freq: '87.9',  id: 'ZhIWWecwhpg', start: 17, song: "KING'S BLVD 2", artist: 'NANA' },
+    { freq: '94.5',  id: 'J7IMwop3RHs', start: 0,  song: 'CHILL BILL', artist: 'ROB $TONE FT. J.DAVIS & SPOOKS' },
+    { freq: '101.7', id: '4xoJhE4KvEw', start: 0,  song: 'NO COCAINE', artist: 'SLIGHTLY STOOPID' },
+  ];
+  let st = 0, player = null, ready = false, pending = null, playing = false, everPlayed = false;
+  const sep = ' &nbsp;·&nbsp; ';
+  const lcdOn = () => { const S = STATIONS[st]; return `FM ${S.freq}${sep}NOW PLAYING${sep}${S.song}${sep}${S.artist}${sep}FALLING SUNS${sep}TIJUANA AFTER DARK${sep}`; };
+  const lcdOff = () => `AUX${sep}READY${sep}PUSH START TO PLAY${sep}FM ${STATIONS[st].freq}${sep}`;
+  function paint() {
+    $('lcdText').innerHTML = playing ? lcdOn() : lcdOff();
+    $('huSrc').textContent = playing ? 'FM ' + STATIONS[st].freq : 'AUX';
+  }
   function setPlaying(on) {
     playing = on; if (on) everPlayed = true;
     document.dispatchEvent(new CustomEvent('dash-music', { detail: on }));
     document.body.classList.toggle('music-on', on);
-    $('lcdText').innerHTML = on ? LCD_ON : LCD_OFF;
-    $('huSrc').textContent = on ? 'FM 87.9' : 'AUX';
+    paint();
     if (on) $('spWrap').classList.remove('reveal');
   }
   setPlaying(false);
-  function reveal() { $('spWrap').classList.add('reveal'); $('lcdText').innerHTML = "TAP ▶ ON THE PLAYER BELOW TO START THE MUSIC &nbsp;·&nbsp;"; }
+  function reveal() { $('spWrap').classList.add('reveal'); $('lcdText').innerHTML = "TAP ▶ ON THE PLAYER BELOW TO START THE MUSIC" + sep; }
   function run(cmd) {
     if (!ready) { pending = cmd; return; }
-    if (cmd === 'start') { player.seekTo(START_AT, true); player.playVideo(); }
+    if (cmd === 'start') { player.seekTo(STATIONS[st].start, true); player.playVideo(); }
     else if (playing) player.pauseVideo();
     else player.playVideo();
   }
+  // a short burst of radio static between stations
+  let actx = null;
+  function hiss() {
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      const len = actx.sampleRate * 0.35, buf = actx.createBuffer(1, len, actx.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+      const src = actx.createBufferSource(), g = actx.createGain(), f = actx.createBiquadFilter();
+      f.type = 'bandpass'; f.frequency.value = 2400; f.Q.value = .6; g.gain.value = .12;
+      src.buffer = buf; src.connect(f).connect(g).connect(actx.destination); src.start();
+    } catch (e) {}
+  }
+  window.dashStation = dir => {
+    st = (st + dir + STATIONS.length) % STATIONS.length;
+    const S = STATIONS[st];
+    $('huSrc').textContent = 'FM ' + S.freq;
+    $('lcdText').innerHTML = `TUNING${sep}FM ${S.freq}${sep}`;
+    if (!ready) return;
+    if (playing || !everPlayed) { hiss(); player.loadVideoById({ videoId: S.id, startSeconds: S.start }); }
+    else player.cueVideoById({ videoId: S.id, startSeconds: S.start });
+    setTimeout(paint, 900);
+  };
   window.onYouTubeIframeAPIReady = () => {
     player = new YT.Player('ytPlayer', {
-      width: 320, height: 180, videoId: YT_VIDEO,
-      playerVars: { start: START_AT, controls: 1, playsinline: 1, rel: 0, modestbranding: 1, disablekb: 1 },
+      width: 320, height: 180, videoId: STATIONS[st].id,
+      playerVars: { start: STATIONS[st].start, controls: 1, playsinline: 1, rel: 0, modestbranding: 1, disablekb: 1 },
       events: {
         onReady: () => { ready = true; player.setVolume(85); if (pending) { run(pending); pending = null; } },
         onStateChange: e => {
           if (e.data === YT.PlayerState.PLAYING) setPlaying(true);
           else if (e.data === YT.PlayerState.PAUSED) setPlaying(false);
-          else if (e.data === YT.PlayerState.ENDED) { player.seekTo(START_AT, true); player.playVideo(); }  // loop from 0:17
+          else if (e.data === YT.PlayerState.ENDED) { player.seekTo(STATIONS[st].start, true); player.playVideo(); }  // loop this station
         },
         onError: () => reveal()
       }
@@ -117,7 +146,6 @@
   };
   window.dashMusic = cmd => {
     run(cmd);
-    // if the browser blocks playback, show the player so the visitor can tap play
     if (cmd === 'start') setTimeout(() => { if (!everPlayed) reveal(); }, 3000);
     else if (!everPlayed) setTimeout(() => { if (!everPlayed) reveal(); }, 1500);
   };
