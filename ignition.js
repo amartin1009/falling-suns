@@ -49,13 +49,13 @@
   function insertFrom(x, y, done) {
     const r = big.getBoundingClientRect();
     const fly = document.createElement('img');
-    fly.src = 'media/key-cursor.png'; fly.className = 'flykey';
+    fly.src = 'media/keys.png'; fly.className = 'flykey';
     fly.style.left = x + 'px'; fly.style.top = y + 'px';
     document.body.appendChild(fly);
     const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-    fly.animate([{ transform: 'translate(-10px,-10px) scale(1.6) rotate(0deg)', opacity: 1 },
-                 { transform: `translate(${cx - x - 10}px,${cy - y - 10}px) scale(.7) rotate(-8deg)`, opacity: 1, offset: .85 },
-                 { transform: `translate(${cx - x - 10}px,${cy - y - 10}px) scale(.55) rotate(-8deg)`, opacity: 0 }],
+    fly.animate([{ transform: 'translate(-4px,-1px) scale(1) rotate(0deg)', opacity: 1 },
+                 { transform: `translate(${cx - x - 4}px,${cy - y - 1}px) scale(.8) rotate(-10deg)`, opacity: 1, offset: .8 },
+                 { transform: `translate(${cx - x - 4}px,${cy - y - 1}px) scale(.6) rotate(-10deg)`, opacity: 0 }],
       { duration: 520, easing: 'cubic-bezier(.5,0,.3,1)', fill: 'forwards' }).onfinish = () => { fly.remove(); done(); };
   }
   function start(e) {
@@ -83,7 +83,7 @@
       { duration: 900, easing: 'cubic-bezier(.65,0,.25,1)', fill: 'forwards' })
       .onfinish = () => { mini.classList.add('seated', 'lit'); turn(miniKey, playingNow ? POS.ON : POS.ON, 0); document.body.classList.add('docked'); };
   }
-  big.addEventListener('click', start);
+  document.getElementById('ignition').addEventListener('click', start);   // click anywhere: the keys fly into the ignition
 
   // ---------- music state <-> key position ----------
   let playingNow = false;
@@ -101,5 +101,4 @@
   $('rbSeekL').onclick = e => { tap(e.currentTarget); document.getElementById('prev').click(); };
   $('rbSeekR').onclick = e => { tap(e.currentTarget); document.getElementById('next').click(); };
   $('rbPlay').onclick = e => { tap(e.currentTarget); window.dashMusic && window.dashMusic('toggle'); };
-  document.querySelectorAll('.preset').forEach(p => p.onclick = () => { tap(p); window.go && window.go(+p.dataset.slide - 1); });
 })();
