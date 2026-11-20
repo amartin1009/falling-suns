@@ -74,9 +74,10 @@
   $('sigR').onclick = () => { blink($('sigR')); document.getElementById('next').click(); };
   document.addEventListener('keydown', e => { if (e.key === 'ArrowLeft') blink($('sigL')); if (e.key === 'ArrowRight') blink($('sigR')); });
 
-  // ---------- head unit (Spotify, driven by the push-start button) ----------
-  const START_AT = 18;   // seconds into the song to start from
-  let ctrl = null, api = null, pending = null, playing = false, everPlayed = false, seeked = false;
+  // ---------- head unit: audio from a YouTube video, driven by the push-start button ----------
+  const YT_VIDEO = 'ZhIWWecwhpg';   // Nana - King's Blvd 2
+  const START_AT = 17;              // seconds into the song to start (and loop back to)
+  let player = null, ready = false, pending = null, playing = false, everPlayed = false;
   const LCD_ON = "FM 87.9 &nbsp;·&nbsp; NOW PLAYING &nbsp;·&nbsp; KING'S BLVD 2 &nbsp;·&nbsp; FALLING SUNS &nbsp;·&nbsp; TIJUANA AFTER DARK &nbsp;·&nbsp;";
   const LCD_OFF = "AUX &nbsp;·&nbsp; READY &nbsp;·&nbsp; PUSH START TO PLAY &nbsp;·&nbsp; KING'S BLVD 2 &nbsp;·&nbsp;";
   function setPlaying(on) {
@@ -90,33 +91,34 @@
   setPlaying(false);
   function reveal() { $('spWrap').classList.add('reveal'); $('lcdText').innerHTML = "TAP ▶ ON THE PLAYER BELOW TO START THE MUSIC &nbsp;·&nbsp;"; }
   function run(cmd) {
-    if (!ctrl) { pending = cmd; return; }
-    if (cmd === 'start') ctrl.play();
-    else ctrl.togglePlay();
+    if (!ready) { pending = cmd; return; }
+    if (cmd === 'start') { player.seekTo(START_AT, true); player.playVideo(); }
+    else if (playing) player.pauseVideo();
+    else player.playVideo();
   }
-  function mount() {
-    if (!api || ctrl || !window.SPOTIFY_TRACK) return;
-    api.createController($('spEmbed'), { uri: 'spotify:track:' + window.SPOTIFY_TRACK, width: '100%', height: 80 }, c => {
-      ctrl = c;
-      c.addListener('playback_update', e => {
-        const d = e.data;
-        // jump to START_AT the first time the full song plays (skip for 30-second previews)
-        if (!seeked && !d.isPaused && d.duration > 60000 && d.position < (START_AT - 1) * 1000) { seeked = true; c.seek(START_AT); }
-        setPlaying(!d.isPaused);
-      });
-      c.addListener('ready', () => { if (pending) { run(pending); pending = null; } });
+  window.onYouTubeIframeAPIReady = () => {
+    player = new YT.Player('ytPlayer', {
+      width: 320, height: 180, videoId: YT_VIDEO,
+      playerVars: { start: START_AT, controls: 1, playsinline: 1, rel: 0, modestbranding: 1, disablekb: 1 },
+      events: {
+        onReady: () => { ready = true; player.setVolume(85); if (pending) { run(pending); pending = null; } },
+        onStateChange: e => {
+          if (e.data === YT.PlayerState.PLAYING) setPlaying(true);
+          else if (e.data === YT.PlayerState.PAUSED) setPlaying(false);
+          else if (e.data === YT.PlayerState.ENDED) { player.seekTo(START_AT, true); player.playVideo(); }  // loop from 0:17
+        },
+        onError: () => reveal()
+      }
     });
-  }
-  window.onSpotifyIframeApiReady = API => { api = API; mount(); };
+  };
   window.dashUnlocked = () => {
-    if (!window.SPOTIFY_TRACK || document.getElementById('spapi')) return;
-    const s = document.createElement('script'); s.id = 'spapi'; s.async = true;
-    s.src = 'https://open.spotify.com/embed/iframe-api/v1'; document.body.appendChild(s);
+    if (document.getElementById('ytapi')) return;
+    const s = document.createElement('script'); s.id = 'ytapi'; s.src = 'https://www.youtube.com/iframe_api'; document.body.appendChild(s);
   };
   window.dashMusic = cmd => {
     run(cmd);
-    // if the browser blocks playback (or Spotify hasn't loaded), show Spotify's own play button
-    if (cmd === 'start') setTimeout(() => { if (!everPlayed) reveal(); }, 2800);
+    // if the browser blocks playback, show the player so the visitor can tap play
+    if (cmd === 'start') setTimeout(() => { if (!everPlayed) reveal(); }, 3000);
     else if (!everPlayed) setTimeout(() => { if (!everPlayed) reveal(); }, 1500);
   };
   if (!document.body.classList.contains('locked')) window.dashUnlocked();
