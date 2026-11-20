@@ -3,7 +3,7 @@
    letterbox, and passing-streetlight sweeps so it feels like a moving car. */
 (function () {
   // ===== EDIT: photos to cut between (in media/bg/) =====
-  const PHOTOS = ['redcar.jpg', 'fabrica.jpg', 'mirror.jpg', 'gas.jpg', 'rearview.jpg', 'car.jpg', 'tacos.jpg', 'pemex.jpg', 'redspeedo.jpg'];
+  const PHOTOS = ['redcar.jpg', 'fabrica.jpg', 'gas.jpg', 'rearview.jpg', 'tacos.jpg', 'pemex.jpg', 'redspeedo.jpg', 'pinkdash.jpg'];
   const HOLD = [3.6, 6.2];   // seconds per shot
   // ======================================================
 
