@@ -248,26 +248,6 @@
   .sp.reveal{position:relative;left:auto;right:auto;bottom:auto;opacity:1;pointer-events:auto;margin-top:10px}
   @media (max-width:820px){ .startslot{order:-2} .startbtn{width:124px;height:124px} }
 
-  /* ---------- ignition + key ---------- */
-  body.parked{cursor:url(media/keys-cursor.png) 4 1,pointer}
-  body.parked .ign.big{cursor:url(media/keys-cursor.png) 4 1,pointer}
-  body.keying{cursor:default}
-  .ign{position:relative;border:0;padding:0;background:none;border-radius:50%;cursor:pointer;line-height:0}
-  .ign.big{width:170px;height:170px;filter:drop-shadow(0 18px 30px rgba(0,0,0,.85))}
-  .ign.mini{width:92px;height:92px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.85))}
-  .ign .cyl,.ign .keywrap,.ign .key{position:absolute;inset:0;width:100%;height:100%}
-  .ign .keywrap{opacity:0;transform:rotate(-50deg)}
-  .ign.seated .keywrap{opacity:1}
-  .ig-lab{font:600 13px 'Barlow Condensed',Arial Narrow,sans-serif;fill:#e9e2dd;letter-spacing:.06em}
-  .ig-lab.red{fill:#ff3a26}
-  .ig-led{fill:#3a0a06}
-  .ign.lit .ig-led{fill:#ff3a26;filter:drop-shadow(0 0 4px #ff3a26)}
-  .ign.lit .ig-lab{fill:#fff;filter:drop-shadow(0 0 3px rgba(255,60,40,.9))}
-  .ign.big:not(.seated){animation:ignpulse 2.2s ease-in-out infinite}
-  @keyframes ignpulse{50%{filter:drop-shadow(0 18px 30px rgba(0,0,0,.85)) drop-shadow(0 0 26px rgba(255,40,20,.6))}}
-  .flykey{position:fixed;z-index:40;width:128px;height:128px;pointer-events:none;transform-origin:4px 1px;filter:drop-shadow(0 8px 10px rgba(0,0,0,.7))}
-  #startBtnDash{visibility:hidden}
-  body.docked #startBtnDash{visibility:visible}
   /* ---------- radio buttons ---------- */
   .hu-buttons{display:flex;gap:8px;margin-top:10px}
   .rb{flex:1;border:1px solid #262122;border-radius:4px;cursor:pointer;color:#e7e0dc;
@@ -323,8 +303,10 @@
 
 <section class="ignition" id="ignition" aria-label="Start the car">
   <img class="ig-title" src="media/title.png" alt="Falling Suns">
-  <button class="ign big" id="startBtn" aria-label="Turn the key: plays the soundtrack and opens the deck"></button>
-  <p class="ig-hint">Turn the key</p>
+  <button class="startbtn" id="startBtn" aria-label="Push to start: plays the soundtrack and opens the deck">
+    <span class="sb-face"><span class="sb-top">ENGINE</span><span class="sb-mid">START</span><span class="sb-bot">STOP</span></span>
+  </button>
+  <p class="ig-hint">Push to start</p>
 </section>
 
 <main>
@@ -344,7 +326,8 @@
         <button class="signal" id="sigL" aria-label="Previous slide"><svg viewBox="0 0 24 24"><path d="M2 12l9-8v5h11v6H11v5z"/></svg></button>
         <div class="odo" id="odo">01 / 25</div></div>
     </div>
-    <div class="startslot"><button class="ign mini" id="startBtnDash" aria-label="Ignition: turn the key to play or stop the music"></button></div>
+    <div class="startslot"><button class="startbtn mini" id="startBtnDash" aria-label="Engine start/stop: music on or off">
+      <span class="sb-face"><span class="sb-top">ENGINE</span><span class="sb-mid">START</span><span class="sb-bot">STOP</span></span></button></div>
     <div class="headunit" id="radio">
       <div class="hu-top"><span id="huSrc">AUX</span><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="hu-slide" id="huSlide">01 / 25</span></div>
       <div class="lcd" id="radioLcd"><span id="lcdText"></span></div>
@@ -536,9 +519,9 @@ if (TRAILER_URL) {
 document.getElementById('closeModal').onclick = closeModal;
 modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 </script>
-<script src="bgcuts.js?v=15"></script>
-<script src="dashboard.js?v=15"></script>
-<script src="ignition.js?v=15"></script>
+<script src="bgcuts.js?v=16"></script>
+<script src="dashboard.js?v=16"></script>
+<script src="ignition.js?v=16"></script>
 <script>window.__slide && window.dashSetSlide(window.__slide[0], window.__slide[1]);</script>
 </body>
 </html>

@@ -77,7 +77,7 @@
   // ---------- head unit (Spotify, driven by the push-start button) ----------
   let ctrl = null, api = null, pending = null, playing = false, everPlayed = false;
   const LCD_ON = "FM 87.9 &nbsp;·&nbsp; NOW PLAYING &nbsp;·&nbsp; KING'S BLVD 2 &nbsp;·&nbsp; FALLING SUNS &nbsp;·&nbsp; TIJUANA AFTER DARK &nbsp;·&nbsp;";
-  const LCD_OFF = "AUX &nbsp;·&nbsp; READY &nbsp;·&nbsp; TURN THE KEY TO PLAY &nbsp;·&nbsp; KING'S BLVD 2 &nbsp;·&nbsp;";
+  const LCD_OFF = "AUX &nbsp;·&nbsp; READY &nbsp;·&nbsp; PUSH START TO PLAY &nbsp;·&nbsp; KING'S BLVD 2 &nbsp;·&nbsp;";
   function setPlaying(on) {
     playing = on; if (on) everPlayed = true;
     document.dispatchEvent(new CustomEvent('dash-music', { detail: on }));
