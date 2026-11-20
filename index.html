@@ -51,16 +51,25 @@
   .play[hidden]{display:none}
 
   /* ---------- deck slider ---------- */
-  .deck{position:relative;width:min(1080px,80vw,calc((100vh - 12vh - 360px) * 16 / 9));aspect-ratio:16/9;border:6px solid var(--frame);
-    box-shadow:0 0 0 1px rgba(0,0,0,.6),0 30px 80px rgba(0,0,0,.7),0 0 60px rgba(255,42,26,.25);
-    background:#000;overflow:hidden;touch-action:pan-y}
-  .track{display:flex;height:100%;transition:transform .6s cubic-bezier(.7,0,.2,1)}
-  .slide{flex:0 0 100%;height:100%;position:relative;display:flex;align-items:center;justify-content:center}
+  .deck{position:relative;width:min(900px,62vw,calc((100vh - 12vh - 360px) * 16 / 9));aspect-ratio:16/9;touch-action:pan-y}
+  .track{position:relative;width:100%;height:100%}
+  .slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#000;
+    opacity:0;pointer-events:none;transform:translateX(0) scale(.5);filter:brightness(.3);
+    transition:transform .75s cubic-bezier(.6,0,.2,1),opacity .75s,filter .75s,box-shadow .75s}
+  .slide.cur{opacity:1;transform:none;filter:none;z-index:3;
+    box-shadow:0 0 0 6px var(--frame),0 30px 80px rgba(0,0,0,.75),0 0 60px rgba(255,42,26,.28)}
+  .slide.cprev,.slide.cnext{opacity:.85;filter:brightness(.38) saturate(.75);z-index:2;pointer-events:auto;cursor:pointer;
+    box-shadow:0 0 0 3px rgba(243,236,228,.35),0 20px 50px rgba(0,0,0,.7)}
+  .slide.cprev{transform:translateX(-74%) scale(.62)}
+  .slide.cnext{transform:translateX(74%) scale(.62)}
+  .slide.cprev:hover,.slide.cnext:hover{filter:brightness(.6) saturate(.9)}
+  .slide.cprev2{transform:translateX(-120%) scale(.4);opacity:0}
+  .slide.cnext2{transform:translateX(120%) scale(.4);opacity:0}
   .slide video{width:100%;height:100%;object-fit:contain;display:block;background:#000}
   .slide img{width:100%;height:100%;object-fit:contain;display:block;user-select:none;-webkit-user-drag:none}
   .slide .missing{font-size:.8rem;letter-spacing:.2em;color:#777;text-align:center;line-height:2}
   .slide .missing b{display:block;font-family:'Anton';font-size:3rem;color:var(--neon);text-shadow:0 0 14px var(--neon);letter-spacing:0}
-  .arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:3;background:none;border:0;cursor:pointer;
+  .arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:5;background:none;border:0;cursor:pointer;
     width:60px;height:90px;display:flex;align-items:center;justify-content:center;opacity:.75;transition:opacity .2s}
   .arrow:hover{opacity:1}
   .arrow svg{width:26px;height:26px;stroke:#fff;stroke-width:3;fill:none;filter:drop-shadow(0 0 6px rgba(0,0,0,.9))}
@@ -195,6 +204,7 @@
     .pod{width:min(40vw,160px)}
     .dash-sw{position:static;width:100%;justify-content:center;margin-top:6px}
     .deck{width:94vw}
+    .slide.cprev,.slide.cnext{opacity:0;pointer-events:none}
     main{padding-top:10vh}
     .cabin .sides{display:none}
   }
@@ -266,16 +276,16 @@
   /* ---------- playlist + station hint ---------- */
   .hu-tag{font-size:9px;letter-spacing:.24em;color:#9b918c}
   .playlist{display:flex;flex-direction:column;gap:2px;margin-top:9px;border-top:1px solid rgba(255,255,255,.06);padding-top:7px}
-  .track{display:grid;grid-template-columns:42px 1fr auto 18px;align-items:center;gap:8px;background:none;border:0;border-radius:3px;cursor:pointer;
+  .pl-item{display:grid;grid-template-columns:42px 1fr auto 18px;align-items:center;gap:8px;background:none;border:0;border-radius:3px;cursor:pointer;
     padding:4px 6px;color:#a39893;text-align:left;font:500 10px -apple-system,'Helvetica Neue',Arial,sans-serif;letter-spacing:.1em}
-  .track:hover{background:rgba(255,255,255,.04);color:#e7e0dc}
-  .track .tf{font-family:Orbitron,sans-serif;font-size:9px;color:#5dffc9;opacity:.6}
-  .track .tn{color:inherit;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .track .ta{font-size:8px;color:#7d7470;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
-  .track .eq{visibility:hidden;margin:0}
-  .track.on{color:#fff;background:rgba(93,255,201,.06)}
-  .track.on .tf{opacity:1;text-shadow:0 0 6px #5dffc9}
-  body.music-on .track.on .eq{visibility:visible}
+  .pl-item:hover{background:rgba(255,255,255,.04);color:#e7e0dc}
+  .pl-item .tf{font-family:Orbitron,sans-serif;font-size:9px;color:#5dffc9;opacity:.6}
+  .pl-item .tn{color:inherit;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pl-item .ta{font-size:8px;color:#7d7470;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
+  .pl-item .eq{visibility:hidden;margin:0}
+  .pl-item.on{color:#fff;background:rgba(93,255,201,.06)}
+  .pl-item.on .tf{opacity:1;text-shadow:0 0 6px #5dffc9}
+  body.music-on .pl-item.on .eq{visibility:visible}
   .station-hint{position:absolute;left:50%;top:-44px;transform:translate(-50%,8px);opacity:0;pointer-events:none;white-space:nowrap;
     background:rgba(8,6,6,.92);border:1px solid rgba(93,255,201,.45);color:#e9e4e0;border-radius:6px;padding:8px 12px;
     font:500 11px -apple-system,'Helvetica Neue',Arial,sans-serif;letter-spacing:.06em;box-shadow:0 0 18px rgba(93,255,201,.2);transition:opacity .4s,transform .4s}
@@ -302,7 +312,7 @@
     .play{font-size:1.5rem}
     .dots{display:none}
   }
-  @media (prefers-reduced-motion:reduce){.title,.grain{animation:none}.track{transition:none}}
+  @media (prefers-reduced-motion:reduce){.title,.grain{animation:none}.slide{transition:none}}
 </style>
 </head>
 <body class="locked">
@@ -408,13 +418,23 @@ for (let n = 1; n <= SLIDE_COUNT; n++) {
 
 function go(n) {
   i = (n + SLIDE_COUNT) % SLIDE_COUNT;
-  track.style.transform = `translateX(-${i * 100}%)`;
+  const N = SLIDE_COUNT, rel = k => ((k - i) % N + N) % N;
+  [...track.children].forEach((el, k) => {
+    const r = rel(k);
+    el.classList.remove('cur', 'cprev', 'cnext', 'cprev2', 'cnext2');
+    if (r === 0) el.classList.add('cur');
+    else if (r === 1) el.classList.add('cnext');
+    else if (r === N - 1) el.classList.add('cprev');
+    else if (r === 2) el.classList.add('cnext2');
+    else if (r === N - 2) el.classList.add('cprev2');
+  });
   counter.textContent = `${pad(i + 1)} / ${pad(SLIDE_COUNT)}`;
   [...dots.children].forEach((d, k) => d.classList.toggle('on', k === i));
   if (typeof syncVideos === 'function') syncVideos();
   window.__slide = [i, SLIDE_COUNT]; window.dashSetSlide && window.dashSetSlide(i, SLIDE_COUNT);
 }
 document.getElementById('prev').onclick = () => go(i - 1);
+track.addEventListener('click', e => { const sl = e.target.closest('.slide'); if (!sl) return; if (sl.classList.contains('cprev')) go(i - 1); else if (sl.classList.contains('cnext')) go(i + 1); });
 document.getElementById('next').onclick = () => go(i + 1);
 document.addEventListener('keydown', e => {
   if (document.getElementById('modal').classList.contains('open')) { if (e.key === 'Escape') closeModal(); return; }
@@ -535,7 +555,7 @@ document.getElementById('closeModal').onclick = closeModal;
 modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 </script>
 <script src="bgcuts.js?v=16"></script>
-<script src="dashboard.js?v=21"></script>
+<script src="dashboard.js?v=22"></script>
 <script src="ignition.js?v=21"></script>
 <script>window.__slide && window.dashSetSlide(window.__slide[0], window.__slide[1]);</script>
 </body>

@@ -18,7 +18,7 @@
   const lcdOff = () => `AUX${sep}READY${sep}PUSH START TO PLAY${sep}FM ${STATIONS[st].freq}${sep}`;
   const list = $('playlist');
   STATIONS.forEach((S, i) => {
-    const li = document.createElement('button'); li.className = 'track'; li.type = 'button';
+    const li = document.createElement('button'); li.className = 'pl-item'; li.type = 'button';
     li.innerHTML = `<span class="tf">${S.freq}</span><span class="tn">${S.song}</span><span class="ta">${S.artist}</span><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>`;
     li.onclick = () => window.dashStation(i - st);
     list.appendChild(li);
