@@ -47,18 +47,24 @@
   const setSpeed = buildGauge($('speedo'), { max: 180, major: 20, minor: 10, labelEvery: 20, unit: 'km/h' });
   const setRpm = buildGauge($('tacho'), { max: 8, major: 1, minor: 0.25, labelEvery: 1, unit: 'RPM × 1000' });
 
-  let speed = 0, targetSpeed = 0, rev = 0;
+  let speed = 0, targetSpeed = 0, rev = 0, power = false, sweepAt = 0, slideTarget = 0;
+  window.dashPower = on => { power = on; if (on) { sweepAt = performance.now(); targetSpeed = slideTarget; } else targetSpeed = 0; };
   window.dashSetSlide = (i, n) => {
-    targetSpeed = n > 1 ? 10 + (i / (n - 1)) * 150 : 0;
-    rev = 3.2;
+    slideTarget = n > 1 ? 10 + (i / (n - 1)) * 150 : 0;
+    if (power) { targetSpeed = slideTarget; rev = 3.2; }
     const txt = String(i + 1).padStart(2, '0') + ' / ' + String(n).padStart(2, '0');
     $('odo').textContent = txt; $('huSlide').textContent = txt;
   };
   (function tick(t) {
-    speed += (targetSpeed - speed) * 0.05;
-    rev *= 0.95;
-    const rpm = 0.82 + Math.sin(t / 220) * 0.03 + Math.random() * 0.02 + rev * (targetSpeed / 160 + 0.35);
-    setSpeed(speed); setRpm(rpm);
+    if (sweepAt && t - sweepAt < 1500) {                 // startup needle sweep
+      const k = Math.sin(Math.PI * (t - sweepAt) / 1500);
+      setSpeed(k * 180); setRpm(k * 8); speed = 0;
+    } else {
+      speed += (targetSpeed - speed) * 0.05;
+      rev *= 0.95;
+      const rpm = power ? 0.82 + Math.sin(t / 220) * 0.03 + Math.random() * 0.02 + rev * (targetSpeed / 160 + 0.35) : 0;
+      setSpeed(speed); setRpm(rpm);
+    }
     requestAnimationFrame(tick);
   })(0);
 
@@ -68,20 +74,30 @@
   $('sigR').onclick = () => { blink($('sigR')); document.getElementById('next').click(); };
   document.addEventListener('keydown', e => { if (e.key === 'ArrowLeft') blink($('sigL')); if (e.key === 'ArrowRight') blink($('sigR')); });
 
-  // ---------- head unit (Spotify iFrame API) ----------
-  let ctrl = null, api = null, wantPlay = false;
-  const playBtn = $('radioPlay');
+  // ---------- head unit (Spotify, driven by the push-start button) ----------
+  let ctrl = null, api = null, pending = null, playing = false, everPlayed = false;
+  const LCD_ON = "FM 87.9 &nbsp;·&nbsp; NOW PLAYING &nbsp;·&nbsp; KING'S BLVD 2 &nbsp;·&nbsp; FALLING SUNS &nbsp;·&nbsp; TIJUANA AFTER DARK &nbsp;·&nbsp;";
+  const LCD_OFF = "AUX &nbsp;·&nbsp; READY &nbsp;·&nbsp; PUSH START TO PLAY &nbsp;·&nbsp; KING'S BLVD 2 &nbsp;·&nbsp;";
   function setPlaying(on) {
-    playBtn.classList.toggle('on', on); playBtn.setAttribute('aria-pressed', on);
-    $('radioPlayLbl').textContent = on ? 'Pause' : 'Play';
+    playing = on; if (on) everPlayed = true;
     document.body.classList.toggle('music-on', on);
+    $('lcdText').innerHTML = on ? LCD_ON : LCD_OFF;
+    $('huSrc').textContent = on ? 'FM 87.9' : 'AUX';
+    if (on) $('spWrap').classList.remove('reveal');
+  }
+  setPlaying(false);
+  function reveal() { $('spWrap').classList.add('reveal'); $('lcdText').innerHTML = "TAP ▶ ON THE PLAYER BELOW TO START THE MUSIC &nbsp;·&nbsp;"; }
+  function run(cmd) {
+    if (!ctrl) { pending = cmd; return; }
+    if (cmd === 'start') ctrl.play();
+    else ctrl.togglePlay();
   }
   function mount() {
     if (!api || ctrl || !window.SPOTIFY_TRACK) return;
     api.createController($('spEmbed'), { uri: 'spotify:track:' + window.SPOTIFY_TRACK, width: '100%', height: 80 }, c => {
       ctrl = c;
       c.addListener('playback_update', e => setPlaying(!e.data.isPaused));
-      c.addListener('ready', () => { if (wantPlay) c.play(); });
+      c.addListener('ready', () => { if (pending) { run(pending); pending = null; } });
     });
   }
   window.onSpotifyIframeApiReady = API => { api = API; mount(); };
@@ -90,7 +106,12 @@
     const s = document.createElement('script'); s.id = 'spapi'; s.async = true;
     s.src = 'https://open.spotify.com/embed/iframe-api/v1'; document.body.appendChild(s);
   };
-  playBtn.onclick = () => { if (ctrl) ctrl.togglePlay(); else wantPlay = true; };
+  window.dashMusic = cmd => {
+    run(cmd);
+    // if the browser blocks playback (or Spotify hasn't loaded), show Spotify's own play button
+    if (cmd === 'start') setTimeout(() => { if (!everPlayed) reveal(); }, 2800);
+    else if (!everPlayed) setTimeout(() => { if (!everPlayed) reveal(); }, 1500);
+  };
   if (!document.body.classList.contains('locked')) window.dashUnlocked();
 
   // ---------- switches ----------
