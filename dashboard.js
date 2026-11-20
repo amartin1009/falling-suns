@@ -75,7 +75,8 @@
   document.addEventListener('keydown', e => { if (e.key === 'ArrowLeft') blink($('sigL')); if (e.key === 'ArrowRight') blink($('sigR')); });
 
   // ---------- head unit (Spotify, driven by the push-start button) ----------
-  let ctrl = null, api = null, pending = null, playing = false, everPlayed = false;
+  const START_AT = 18;   // seconds into the song to start from
+  let ctrl = null, api = null, pending = null, playing = false, everPlayed = false, seeked = false;
   const LCD_ON = "FM 87.9 &nbsp;·&nbsp; NOW PLAYING &nbsp;·&nbsp; KING'S BLVD 2 &nbsp;·&nbsp; FALLING SUNS &nbsp;·&nbsp; TIJUANA AFTER DARK &nbsp;·&nbsp;";
   const LCD_OFF = "AUX &nbsp;·&nbsp; READY &nbsp;·&nbsp; PUSH START TO PLAY &nbsp;·&nbsp; KING'S BLVD 2 &nbsp;·&nbsp;";
   function setPlaying(on) {
@@ -97,7 +98,12 @@
     if (!api || ctrl || !window.SPOTIFY_TRACK) return;
     api.createController($('spEmbed'), { uri: 'spotify:track:' + window.SPOTIFY_TRACK, width: '100%', height: 80 }, c => {
       ctrl = c;
-      c.addListener('playback_update', e => setPlaying(!e.data.isPaused));
+      c.addListener('playback_update', e => {
+        const d = e.data;
+        // jump to START_AT the first time the full song plays (skip for 30-second previews)
+        if (!seeked && !d.isPaused && d.duration > 60000 && d.position < (START_AT - 1) * 1000) { seeked = true; c.seek(START_AT); }
+        setPlaying(!d.isPaused);
+      });
       c.addListener('ready', () => { if (pending) { run(pending); pending = null; } });
     });
   }
