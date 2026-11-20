@@ -256,6 +256,7 @@
   .hu-top .eq{margin:0 12px 0 auto}
   .sp{position:absolute;left:16px;right:16px;bottom:14px;height:80px;opacity:0;pointer-events:none;border-radius:10px;overflow:hidden}
   .sp iframe{width:100%;height:100%}
+  #ytBox,#spBox{height:100%}
   .sp.reveal{height:150px}
   .sp.reveal{position:relative;left:auto;right:auto;bottom:auto;opacity:1;pointer-events:auto;margin-top:10px}
   @media (max-width:820px){ .startslot{order:-2} .startbtn{width:124px;height:124px} }
@@ -367,7 +368,7 @@
         <button class="rb" id="rbSeekR" aria-label="Next station"><span>▶▶</span><small>SEEK</small></button>
       </div>
       <div class="playlist" id="playlist" aria-label="Playlist"></div>
-      <div class="sp" id="spWrap"><div id="ytPlayer"></div></div>
+      <div class="sp" id="spWrap"><div id="ytBox"><div id="ytPlayer"></div></div><div id="spBox" style="display:none"><div id="spEmbed"></div></div></div>
     </div>
     <div class="dash-sw"><button class="sw" id="swFull">Full screen</button><button class="sw" id="swContact">Contact</button></div>
   </section>
@@ -417,16 +418,16 @@ for (let n = 1; n <= SLIDE_COUNT; n++) {
 }
 
 function go(n) {
-  i = (n + SLIDE_COUNT) % SLIDE_COUNT;
-  const N = SLIDE_COUNT, rel = k => ((k - i) % N + N) % N;
+  i = Math.max(0, Math.min(SLIDE_COUNT - 1, n));
+  const N = SLIDE_COUNT, rel = k => k - i;
   [...track.children].forEach((el, k) => {
     const r = rel(k);
     el.classList.remove('cur', 'cprev', 'cnext', 'cprev2', 'cnext2');
     if (r === 0) el.classList.add('cur');
     else if (r === 1) el.classList.add('cnext');
-    else if (r === N - 1) el.classList.add('cprev');
+    else if (r === -1) el.classList.add('cprev');
     else if (r === 2) el.classList.add('cnext2');
-    else if (r === N - 2) el.classList.add('cprev2');
+    else if (r === -2) el.classList.add('cprev2');
   });
   counter.textContent = `${pad(i + 1)} / ${pad(SLIDE_COUNT)}`;
   [...dots.children].forEach((d, k) => d.classList.toggle('on', k === i));
@@ -555,7 +556,7 @@ document.getElementById('closeModal').onclick = closeModal;
 modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 </script>
 <script src="bgcuts.js?v=16"></script>
-<script src="dashboard.js?v=22"></script>
+<script src="dashboard.js?v=23"></script>
 <script src="ignition.js?v=21"></script>
 <script>window.__slide && window.dashSetSlide(window.__slide[0], window.__slide[1]);</script>
 </body>
