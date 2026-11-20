@@ -3,91 +3,35 @@
   const NS = 'http://www.w3.org/2000/svg';
   const $ = id => document.getElementById(id);
 
-  // ---------- gauges: red backlit, motion-blurred (after the red speedometer reference) ----------
-  function buildGauge(svg, { max, major, minor, labelEvery, unit, labelDiv = 1 }) {
-    const id = svg.id, cx = 100, cy = 100, r = 84, a0 = -225, a1 = 45;
-    const ang = v => (a0 + (a1 - a0) * (v / max)) * Math.PI / 180;
-    const el = (tag, attrs, parent = svg) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
-    const RED = '#ff2a18';
-    const defs = el('defs', {});
-    defs.innerHTML = `
-      <radialGradient id="${id}-face" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#120303"/><stop offset=".75" stop-color="#060101"/><stop offset="1" stop-color="#000"/></radialGradient>
-      <linearGradient id="${id}-glass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".08"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient>
-      <filter id="${id}-glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-      <filter id="${id}-ghost" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3.2"/></filter>`;
-    el('circle', { cx, cy, r: 99, fill: `url(#${id}-face)` });
-    const p0 = ang(0), p1 = ang(max), rr = r + 7;
-    const arc = `M${cx + Math.cos(p0) * rr} ${cy + Math.sin(p0) * rr} A${rr} ${rr} 0 1 1 ${cx + Math.cos(p1) * rr} ${cy + Math.sin(p1) * rr}`;
-    const g = el('g', {});
-    el('path', { d: arc, fill: 'none', stroke: RED, 'stroke-width': 5, 'stroke-linecap': 'round' }, g);           // lit outer ring
-    for (let v = 0; v <= max + 1e-9; v += minor) {
-      const isMaj = Math.abs(v / major - Math.round(v / major)) < 1e-6, a = ang(v);
-      const r0 = isMaj ? r - 12 : r - 5;
-      el('line', { x1: cx + Math.cos(a) * r0, y1: cy + Math.sin(a) * r0, x2: cx + Math.cos(a) * (r + 2), y2: cy + Math.sin(a) * (r + 2), stroke: RED, 'stroke-width': isMaj ? 3 : 1.3 }, g);
-      if (isMaj && Math.abs(v / labelEvery - Math.round(v / labelEvery)) < 1e-6) {
-        const t = el('text', { x: cx + Math.cos(a) * (r - 29), y: cy + Math.sin(a) * (r - 29) + 5, 'text-anchor': 'middle', class: 'glabel', fill: RED }, g);
-        t.textContent = Math.round(v / labelDiv);
-      }
-    }
-    const u = el('text', { x: cx, y: cy + 27, 'text-anchor': 'middle', class: 'gunit' }, g); u.textContent = unit;
-    // motion-blur ghost of the dial (double exposure), then the sharp glowing dial on top
-    const ghost = g.cloneNode(true); ghost.setAttribute('filter', `url(#${id}-ghost)`); ghost.setAttribute('opacity', '.8'); ghost.setAttribute('transform', 'translate(5,-4)');
-    svg.insertBefore(ghost, g); g.setAttribute('filter', `url(#${id}-glow)`);
-    // needles: a blurred trailing needle that lags behind the sharp one
-    const mk = (op, f) => { const n = el('g', { opacity: op }); if (f) n.setAttribute('filter', f);
-      el('polygon', { points: `${cx - 4.5},${cy + 16} ${cx + 4.5},${cy + 16} ${cx + 1.6},${cy - (r - 4)} ${cx - 1.6},${cy - (r - 4)}`, fill: RED }, n); return n; };
-    const trail = mk(.55, `url(#${id}-ghost)`), needle = mk(1, `url(#${id}-glow)`);
-    el('circle', { cx, cy, r: 8, fill: '#0a0202', stroke: '#2a0805', 'stroke-width': 2 });
-    el('ellipse', { cx, cy: 54, rx: 76, ry: 44, fill: `url(#${id}-glass)`, 'pointer-events': 'none' });
-    const rot = v => (a0 + (a1 - a0) * Math.min(1, Math.max(0, v / max))) + 90;
-    let lag = 0;
-    return v => { lag += (v - lag) * 0.12; needle.setAttribute('transform', `rotate(${rot(v)} ${cx} ${cy})`); trail.setAttribute('transform', `rotate(${rot(lag)} ${cx} ${cy})`); };
-  }
-
-  const setSpeed = buildGauge($('speedo'), { max: 180, major: 20, minor: 10, labelEvery: 20, unit: 'km/h' });
-  const setRpm = buildGauge($('tacho'), { max: 8, major: 1, minor: 0.25, labelEvery: 1, unit: 'RPM × 1000' });
-
-  let speed = 0, targetSpeed = 0, rev = 0, power = false, sweepAt = 0, slideTarget = 0;
-  window.dashPower = on => { power = on; if (on) { sweepAt = performance.now(); targetSpeed = slideTarget; } else targetSpeed = 0; };
-  window.dashSetSlide = (i, n) => {
-    slideTarget = n > 1 ? 10 + (i / (n - 1)) * 150 : 0;
-    if (power) { targetSpeed = slideTarget; rev = 3.2; }
-    const txt = String(i + 1).padStart(2, '0') + ' / ' + String(n).padStart(2, '0');
-    $('odo').textContent = txt; $('huSlide').textContent = txt;
-  };
-  (function tick(t) {
-    if (sweepAt && t - sweepAt < 1500) {                 // startup needle sweep
-      const k = Math.sin(Math.PI * (t - sweepAt) / 1500);
-      setSpeed(k * 180); setRpm(k * 8); speed = 0;
-    } else {
-      speed += (targetSpeed - speed) * 0.05;
-      rev *= 0.95;
-      const rpm = power ? 0.82 + Math.sin(t / 220) * 0.03 + Math.random() * 0.02 + rev * (targetSpeed / 160 + 0.35) : 0;
-      setSpeed(speed); setRpm(rpm);
-    }
-    requestAnimationFrame(tick);
-  })(0);
-
-  // ---------- turn-signal telltales (deck prev/next) ----------
-  function blink(btn) { btn.classList.remove('blink'); void btn.offsetWidth; btn.classList.add('blink'); }
-  $('sigL').onclick = () => { blink($('sigL')); document.getElementById('prev').click(); };
-  $('sigR').onclick = () => { blink($('sigR')); document.getElementById('next').click(); };
-  document.addEventListener('keydown', e => { if (e.key === 'ArrowLeft') blink($('sigL')); if (e.key === 'ArrowRight') blink($('sigR')); });
+  window.dashSetSlide = () => {};
+  window.dashPower = () => {};
 
   // ---------- head unit: radio stations (YouTube audio), driven by the push-start button ----------
   const STATIONS = [
     { freq: '87.9',  id: 'ZhIWWecwhpg', start: 17, song: "KING'S BLVD 2", artist: 'NANA' },
-    { freq: '94.5',  id: 'J7IMwop3RHs', start: 0,  song: 'CHILL BILL', artist: 'ROB $TONE FT. J.DAVIS & SPOOKS' },
+    { freq: '94.5',  id: 'J7IMwop3RHs', start: 18, song: 'CHILL BILL', artist: 'ROB $TONE FT. J.DAVIS & SPOOKS' },
     { freq: '101.7', id: '4xoJhE4KvEw', start: 0,  song: 'NO COCAINE', artist: 'SLIGHTLY STOOPID' },
   ];
   let st = 0, player = null, ready = false, pending = null, playing = false, everPlayed = false;
   const sep = ' &nbsp;·&nbsp; ';
-  const lcdOn = () => { const S = STATIONS[st]; return `FM ${S.freq}${sep}NOW PLAYING${sep}${S.song}${sep}${S.artist}${sep}FALLING SUNS${sep}TIJUANA AFTER DARK${sep}`; };
+  const lcdOn = () => { const S = STATIONS[st]; return `FM ${S.freq}${sep}NOW PLAYING${sep}${S.song}${sep}${S.artist}${sep}SEEK ◀◀ ▶▶ TO CHANGE STATION${sep}FALLING SUNS${sep}`; };
   const lcdOff = () => `AUX${sep}READY${sep}PUSH START TO PLAY${sep}FM ${STATIONS[st].freq}${sep}`;
+  const list = $('playlist');
+  STATIONS.forEach((S, i) => {
+    const li = document.createElement('button'); li.className = 'track'; li.type = 'button';
+    li.innerHTML = `<span class="tf">${S.freq}</span><span class="tn">${S.song}</span><span class="ta">${S.artist}</span><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>`;
+    li.onclick = () => window.dashStation(i - st);
+    list.appendChild(li);
+  });
   function paint() {
     $('lcdText').innerHTML = playing ? lcdOn() : lcdOff();
     $('huSrc').textContent = playing ? 'FM ' + STATIONS[st].freq : 'AUX';
+    [...list.children].forEach((li, i) => li.classList.toggle('on', i === st));
   }
+  // heads-up: tell viewers they can change the station
+  let hinted = false;
+  function hint(show) { $('stationHint').classList.toggle('show', show); }
+  document.addEventListener('dash-music', e => { if (e.detail && !hinted) { hinted = true; setTimeout(() => hint(true), 1800); setTimeout(() => hint(false), 11000); } });
   function setPlaying(on) {
     playing = on; if (on) everPlayed = true;
     document.dispatchEvent(new CustomEvent('dash-music', { detail: on }));
@@ -95,7 +39,7 @@
     paint();
     if (on) $('spWrap').classList.remove('reveal');
   }
-  setPlaying(false);
+  setPlaying(false); paint();
   function reveal() { $('spWrap').classList.add('reveal'); $('lcdText').innerHTML = "TAP ▶ ON THE PLAYER BELOW TO START THE MUSIC" + sep; }
   function run(cmd) {
     if (!ready) { pending = cmd; return; }
@@ -116,6 +60,8 @@
     } catch (e) {}
   }
   window.dashStation = dir => {
+    hint(false);
+    if (!dir) { run('toggle'); return; }
     st = (st + dir + STATIONS.length) % STATIONS.length;
     const S = STATIONS[st];
     $('huSrc').textContent = 'FM ' + S.freq;
@@ -134,7 +80,7 @@
         onStateChange: e => {
           if (e.data === YT.PlayerState.PLAYING) setPlaying(true);
           else if (e.data === YT.PlayerState.PAUSED) setPlaying(false);
-          else if (e.data === YT.PlayerState.ENDED) { player.seekTo(STATIONS[st].start, true); player.playVideo(); }  // loop this station
+          else if (e.data === YT.PlayerState.ENDED) { st = (st + 1) % STATIONS.length; const S = STATIONS[st]; player.loadVideoById({ videoId: S.id, startSeconds: S.start }); setTimeout(paint, 600); }  // playlist: next song
         },
         onError: () => reveal()
       }
