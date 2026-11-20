@@ -51,7 +51,7 @@
   .play[hidden]{display:none}
 
   /* ---------- deck slider ---------- */
-  .deck{position:relative;width:min(1080px,80vw,calc((100vh - 12vh - 300px) * 16 / 9));aspect-ratio:16/9;border:6px solid var(--frame);
+  .deck{position:relative;width:min(1080px,80vw,calc((100vh - 12vh - 370px) * 16 / 9));aspect-ratio:16/9;border:6px solid var(--frame);
     box-shadow:0 0 0 1px rgba(0,0,0,.6),0 30px 80px rgba(0,0,0,.7),0 0 60px rgba(255,42,26,.25);
     background:#000;overflow:hidden;touch-action:pan-y}
   .track{display:flex;height:100%;transition:transform .6s cubic-bezier(.7,0,.2,1)}
@@ -162,7 +162,7 @@
   .signal:hover svg{opacity:.45}
   .signal.blink svg{animation:sig .5s steps(1) 3}
   @keyframes sig{0%{opacity:1;filter:drop-shadow(0 0 6px #27d865)}50%{opacity:.16;filter:none}}
-  .headunit{position:relative;width:clamp(290px,30vw,420px);padding:14px 16px 14px;border-radius:8px;
+  .headunit{position:relative;width:clamp(300px,30vw,420px);padding:11px 14px 12px;border-radius:8px;
     background:linear-gradient(180deg,rgba(22,20,20,.92),rgba(6,6,6,.95));border:1px solid rgba(255,255,255,.08);
     box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 24px 50px rgba(0,0,0,.75);backdrop-filter:blur(8px);
     font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;color:#e9e4e0}
@@ -238,7 +238,7 @@
   body.parked .headunit{opacity:.35}
   body.parked .signal{visibility:hidden}
   /* radio banner */
-  .lcd{margin-top:10px;background:#041210;border:1px solid #0f3a32;border-radius:4px;padding:9px 10px;overflow:hidden;white-space:nowrap;
+  .lcd{margin-top:8px;background:#041210;border:1px solid #0f3a32;border-radius:4px;padding:9px 10px;overflow:hidden;white-space:nowrap;
     font:500 12px Orbitron,sans-serif;letter-spacing:.14em;color:#5dffc9;text-shadow:0 0 6px #5dffc9;box-shadow:inset 0 2px 6px rgba(0,0,0,.8)}
   .lcd span{display:inline-block;padding-left:100%;animation:marq 14s linear infinite}
   @keyframes marq{to{transform:translateX(-100%)}}
@@ -247,6 +247,43 @@
   .sp{position:absolute;left:16px;right:16px;bottom:14px;height:80px;opacity:0;pointer-events:none;border-radius:10px;overflow:hidden}
   .sp.reveal{position:relative;left:auto;right:auto;bottom:auto;opacity:1;pointer-events:auto;margin-top:10px}
   @media (max-width:820px){ .startslot{order:-2} .startbtn{width:124px;height:124px} }
+
+  /* ---------- ignition + key ---------- */
+  body.parked{cursor:url(media/key-cursor.png) 10 10,url(media/key-cursor.svg) 10 10,pointer}
+  body.parked .ign.big{cursor:url(media/key-cursor.png) 10 10,url(media/key-cursor.svg) 10 10,pointer}
+  body.keying{cursor:default}
+  .ign{position:relative;border:0;padding:0;background:none;border-radius:50%;cursor:pointer;line-height:0}
+  .ign.big{width:170px;height:170px;filter:drop-shadow(0 18px 30px rgba(0,0,0,.85))}
+  .ign.mini{width:92px;height:92px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.85))}
+  .ign .cyl,.ign .keywrap,.ign .key{position:absolute;inset:0;width:100%;height:100%}
+  .ign .keywrap{opacity:0;transform:rotate(-50deg)}
+  .ign.seated .keywrap{opacity:1}
+  .ig-lab{font:600 13px 'Barlow Condensed',Arial Narrow,sans-serif;fill:#e9e2dd;letter-spacing:.06em}
+  .ig-lab.red{fill:#ff3a26}
+  .ig-led{fill:#3a0a06}
+  .ign.lit .ig-led{fill:#ff3a26;filter:drop-shadow(0 0 4px #ff3a26)}
+  .ign.lit .ig-lab{fill:#fff;filter:drop-shadow(0 0 3px rgba(255,60,40,.9))}
+  .ign.big:not(.seated){animation:ignpulse 2.2s ease-in-out infinite}
+  @keyframes ignpulse{50%{filter:drop-shadow(0 18px 30px rgba(0,0,0,.85)) drop-shadow(0 0 26px rgba(255,40,20,.6))}}
+  .flykey{position:fixed;z-index:40;width:64px;height:64px;pointer-events:none;transform-origin:10px 10px;filter:drop-shadow(0 8px 10px rgba(0,0,0,.7))}
+  #startBtnDash{visibility:hidden}
+  body.docked #startBtnDash{visibility:visible}
+  /* ---------- radio buttons ---------- */
+  .hu-buttons{display:flex;gap:8px;margin-top:10px}
+  .rb,.preset{flex:1;border:1px solid #262122;border-radius:4px;cursor:pointer;color:#e7e0dc;
+    background:linear-gradient(#232021,#121011);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 2px 0 #000,0 3px 6px rgba(0,0,0,.6);
+    transition:transform .08s,box-shadow .08s}
+  .rb{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0 5px}
+  .rb span{font-size:11px;letter-spacing:.08em}
+  .rb small,.preset small{font:500 7.5px 'Barlow Condensed',Arial Narrow,sans-serif;letter-spacing:.2em;color:#9a908b}
+  .rb.play span{color:#fff}
+  body.music-on .rb.play{box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 2px 0 #000,0 0 0 1px rgba(255,58,38,.5),0 0 12px rgba(255,58,38,.35)}
+  .hu-presets{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:8px}
+  .preset{display:flex;flex-direction:column;align-items:center;padding:5px 0 4px;gap:1px}
+  .preset b{font:600 12px 'Barlow Condensed',Arial Narrow,sans-serif}
+  .preset small{font-size:6.5px;letter-spacing:.12em;white-space:nowrap}
+  .rb:hover,.preset:hover{border-color:#3d3436}
+  .rb.down,.preset.down{transform:translateY(2px);box-shadow:inset 0 2px 4px rgba(0,0,0,.8),0 0 0 #000}
   /* ---------- password gate ---------- */
   .gate{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.4vh;padding:6vw;text-align:center}
   .gate form{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:2vh}
@@ -290,10 +327,8 @@
 
 <section class="ignition" id="ignition" aria-label="Start the car">
   <img class="ig-title" src="media/title.png" alt="Falling Suns">
-  <button class="startbtn" id="startBtn" aria-label="Push to start: plays the soundtrack and opens the deck">
-    <span class="sb-face"><span class="sb-top">ENGINE</span><span class="sb-mid">START</span><span class="sb-bot">STOP</span></span>
-  </button>
-  <p class="ig-hint">Push to start</p>
+  <button class="ign big" id="startBtn" aria-label="Turn the key: plays the soundtrack and opens the deck"></button>
+  <p class="ig-hint">Turn the key</p>
 </section>
 
 <main>
@@ -313,11 +348,23 @@
         <button class="signal" id="sigL" aria-label="Previous slide"><svg viewBox="0 0 24 24"><path d="M2 12l9-8v5h11v6H11v5z"/></svg></button>
         <div class="odo" id="odo">01 / 25</div></div>
     </div>
-    <div class="startslot"><button class="startbtn mini" id="startBtnDash" aria-label="Engine start/stop: music on or off">
-      <span class="sb-face"><span class="sb-top">ENGINE</span><span class="sb-mid">START</span><span class="sb-bot">STOP</span></span></button></div>
+    <div class="startslot"><button class="ign mini" id="startBtnDash" aria-label="Ignition: turn the key to play or stop the music"></button></div>
     <div class="headunit" id="radio">
       <div class="hu-top"><span id="huSrc">AUX</span><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="hu-slide" id="huSlide">01 / 25</span></div>
       <div class="lcd" id="radioLcd"><span id="lcdText"></span></div>
+      <div class="hu-buttons">
+        <button class="rb" id="rbSeekL" aria-label="Previous slide"><span>◀◀</span><small>SEEK</small></button>
+        <button class="rb play" id="rbPlay" aria-label="Play or pause the music"><span>▶ ❚❚</span><small>PLAY</small></button>
+        <button class="rb" id="rbSeekR" aria-label="Next slide"><span>▶▶</span><small>SEEK</small></button>
+      </div>
+      <div class="hu-presets" aria-label="Jump to section">
+        <button class="preset" data-slide="2"><b>1</b><small>LOGLINE</small></button>
+        <button class="preset" data-slide="4"><b>2</b><small>CAST</small></button>
+        <button class="preset" data-slide="9"><b>3</b><small>TONE</small></button>
+        <button class="preset" data-slide="17"><b>4</b><small>SET PIECES</small></button>
+        <button class="preset" data-slide="22"><b>5</b><small>BUDGET</small></button>
+        <button class="preset" data-slide="23"><b>6</b><small>FILMMAKER</small></button>
+      </div>
       <div class="sp" id="spWrap"><div id="spEmbed"></div></div>
     </div>
     <div class="gaugewrap">
@@ -501,9 +548,9 @@ if (TRAILER_URL) {
 document.getElementById('closeModal').onclick = closeModal;
 modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 </script>
-<script src="bgcuts.js?v=11"></script>
-<script src="dashboard.js?v=11"></script>
-<script src="ignition.js?v=11"></script>
+<script src="bgcuts.js?v=13"></script>
+<script src="dashboard.js?v=13"></script>
+<script src="ignition.js?v=13"></script>
 <script>window.__slide && window.dashSetSlide(window.__slide[0], window.__slide[1]);</script>
 </body>
 </html>

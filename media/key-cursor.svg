@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="blade" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f2f2f2"/><stop offset=".5" stop-color="#a9a9a9"/><stop offset="1" stop-color="#6d6d6d"/></linearGradient>
+    <linearGradient id="head" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a3a3a"/><stop offset=".6" stop-color="#111"/><stop offset="1" stop-color="#000"/></linearGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e8e8e8"/><stop offset="1" stop-color="#777"/></linearGradient>
+  </defs>
+  <!-- key ring + second small key dangling -->
+  <circle cx="13" cy="51" r="9" fill="none" stroke="url(#ring)" stroke-width="2.2"/>
+  <g transform="rotate(38 10 58)"><rect x="6" y="56" width="5" height="12" rx="1" fill="url(#blade)" stroke="#444" stroke-width=".5"/><circle cx="8.5" cy="56" r="3.6" fill="#b28a2c" stroke="#5a4310" stroke-width=".6"/></g>
+  <!-- main key: rubber head lower-left, blade pointing to top-right (hotspot at tip) -->
+  <g transform="rotate(-45 32 32)">
+    <rect x="22" y="34" width="20" height="24" rx="7" fill="url(#head)" stroke="#000" stroke-width="1"/>
+    <rect x="25" y="37" width="6" height="12" rx="3" fill="#fff" opacity=".12"/>
+    <circle cx="32" cy="53" r="2.2" fill="#222" stroke="#555" stroke-width=".6"/>
+    <rect x="28.5" y="30" width="7" height="5" rx="1" fill="url(#ring)" stroke="#555" stroke-width=".5"/>
+    <path d="M29 30 L29 4 L33 1 L35.5 4 L35.5 9 L33.5 11 L35.5 13 L35.5 17 L33.5 19 L35.5 21 L35.5 30 Z" fill="url(#blade)" stroke="#555" stroke-width=".6"/>
+  </g>
+</svg>
