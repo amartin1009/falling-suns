@@ -150,14 +150,13 @@
   .gaugewrap{position:relative;padding:14px 12px 0}
   .gaugewrap::before{content:"";position:absolute;left:-7%;right:-7%;top:-4px;height:58%;z-index:0;border-radius:50% 50% 0 0 / 85% 85% 0 0;
     background:linear-gradient(#1c1618,#0b0809);box-shadow:inset 0 2px 0 rgba(255,255,255,.05),0 8px 16px rgba(0,0,0,.85)}
-  .pod{position:relative;z-index:1;width:clamp(150px,15vw,214px);aspect-ratio:1;border-radius:50%;padding:7px;
-    background:conic-gradient(from 200deg,#2a2a2a,#a8a8a8 8%,#3a3a3a 20%,#6f6f6f 38%,#1d1d1d 52%,#9b9b9b 70%,#2e2e2e 86%,#2a2a2a);
-    box-shadow:0 12px 26px rgba(0,0,0,.9),0 0 0 2px #050505,inset 0 0 3px rgba(0,0,0,.9)}
-  .pod svg{display:block;width:100%;height:100%;border-radius:50%;box-shadow:inset 0 0 22px #000}
-  .glabel{font:600 15px 'Barlow Condensed',Arial Narrow,sans-serif}
-  .gunit{font:500 7.5px 'Barlow Condensed',Arial Narrow,sans-serif;letter-spacing:.22em;fill:rgba(244,230,223,.55)}
-  .odo{position:absolute;left:50%;bottom:26%;transform:translateX(-50%);font:13px 'Share Tech Mono',monospace;letter-spacing:.06em;color:#ffad4d;
-    background:#120b05;border:1px solid #2a1a0c;border-radius:2px;padding:2px 7px;white-space:nowrap;text-shadow:0 0 5px rgba(255,150,60,.6);box-shadow:inset 0 1px 3px #000}
+  .pod{position:relative;z-index:1;width:clamp(150px,15vw,214px);aspect-ratio:1;border-radius:50%;padding:3px;background:#050101;
+    box-shadow:0 0 34px rgba(255,30,15,.28),0 12px 26px rgba(0,0,0,.9),0 0 0 2px #0c0303}
+  .pod svg{display:block;width:100%;height:100%;border-radius:50%;overflow:visible;filter:blur(.35px) saturate(1.15)}
+  .glabel{font:600 15px 'Barlow Condensed',Arial Narrow,sans-serif;letter-spacing:-.01em}
+  .gunit{font:500 9px 'Barlow Condensed',Arial Narrow,sans-serif;letter-spacing:.18em;fill:#ff2a18;opacity:.75}
+  .odo{position:absolute;left:50%;bottom:7%;transform:translateX(-50%);font:13px 'Share Tech Mono',monospace;letter-spacing:.06em;color:#ff3a26;
+    background:#140303;border:1px solid #3a0a06;border-radius:2px;padding:2px 7px;white-space:nowrap;text-shadow:0 0 6px rgba(255,40,20,.8);box-shadow:inset 0 1px 3px #000}
   .signal{position:absolute;z-index:2;top:30%;left:50%;transform:translateX(-50%);background:none;border:0;cursor:pointer;padding:4px;line-height:0}
   .signal svg{width:20px;height:20px;fill:#27d865;opacity:.16;transition:opacity .15s}
   .signal:hover svg{opacity:.45}
@@ -446,8 +445,8 @@ if (TRAILER_URL) {
 document.getElementById('closeModal').onclick = closeModal;
 modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 </script>
-<script src="bgcuts.js?v=8"></script>
-<script src="dashboard.js?v=8"></script>
+<script src="bgcuts.js?v=10"></script>
+<script src="dashboard.js?v=10"></script>
 <script>window.__slide && window.dashSetSlide(window.__slide[0], window.__slide[1]);</script>
 </body>
 </html>
