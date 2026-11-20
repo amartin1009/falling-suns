@@ -33,6 +33,9 @@
   };
   playBtn.onclick = () => { if (ctrl) ctrl.togglePlay(); else wantPlay = true; };
 
+  // if the page was already unlocked before this script ran (returning visitor), start the radio now
+  if (!document.body.classList.contains('locked')) window.dashUnlocked();
+
   // switches
   $('swFull').onclick = () => document.getElementById('fsBtn').click();
   $('swContact').onclick = () => document.querySelector('footer').scrollIntoView({ behavior: 'smooth' });
