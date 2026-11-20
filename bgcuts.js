@@ -1,63 +1,80 @@
-/* FALLING SUNS — music-video background edit.
-   Cuts between the animated night drive and still photos with
-   hard cuts, flash frames, slow push-ins, RGB-split jitter and letterbox. */
+/* FALLING SUNS — background: real photos cut like a music video.
+   Handheld drift + micro-shake, hard cuts, occasional flash frames,
+   letterbox, and passing-streetlight sweeps so it feels like a moving car. */
 (function () {
-  // ===== EDIT: photos to cut to (in media/bg/) =====
-  const PHOTOS = ['mirror.jpg', 'redcar.jpg', 'fabrica.jpg', 'gas.jpg', 'pinkdash.jpg', 'car.jpg', 'rearview.jpg', 'tacos.jpg', 'redspeedo.jpg', 'pemex.jpg'];
-  // seconds on the drive between photo bursts, and per photo
-  const DRIVE_HOLD = [7, 11], PHOTO_HOLD = [2.2, 3.6], BURST = [1, 3];
-  // ==================================================
+  // ===== EDIT: photos to cut between (in media/bg/) =====
+  const PHOTOS = ['redcar.jpg', 'fabrica.jpg', 'mirror.jpg', 'gas.jpg', 'rearview.jpg', 'car.jpg', 'tacos.jpg', 'pemex.jpg', 'redspeedo.jpg'];
+  const HOLD = [3.6, 6.2];   // seconds per shot
+  // ======================================================
 
   const bg = document.getElementById('bg');
-  if (!bg || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (!bg) return;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const stage = document.createElement('div'); stage.className = 'shots';
+  const sweeps = document.createElement('div'); sweeps.className = 'sweeps';
   const flash = document.createElement('div'); flash.className = 'flash';
   const bars = document.createElement('div'); bars.className = 'bars';
-  bg.append(stage, flash, bars);
+  bg.append(stage, sweeps, flash, bars);
 
   const shots = PHOTOS.map(src => {
     const d = document.createElement('div'); d.className = 'shot';
-    ['r', 'c', 'm'].forEach(k => { const l = document.createElement('i'); l.className = 'ch-' + k; l.style.backgroundImage = `url(media/bg/${src})`; d.appendChild(l); });
+    ['m', 'r', 'c'].forEach(k => { const l = document.createElement('i'); l.className = 'ch-' + k; l.style.backgroundImage = `url(media/bg/${src})`; d.appendChild(l); });
     stage.appendChild(d);
-    const img = new Image(); img.src = `media/bg/${src}`; // preload
+    new Image().src = `media/bg/${src}`;
     return d;
   });
 
   const rand = (a, b) => a + Math.random() * (b - a);
-  let last = -1, timer;
-  const wait = s => new Promise(r => (timer = setTimeout(r, s * 1000)));
+  let order = [], idx = 0, timer, timer2, running = false;
+  const nextShot = () => {
+    if (idx >= order.length) { order = shots.map((_, i) => i).sort(() => Math.random() - 0.5); idx = 0; }
+    return shots[order[idx++]];
+  };
 
-  function cut(el) {
+  function cut(el, hard) {
     shots.forEach(s => s.classList.remove('on', 'glitch'));
-    if (el) {
-      el.style.setProperty('--ox', rand(20, 80) + '%');
-      el.style.setProperty('--oy', rand(25, 70) + '%');
-      el.style.setProperty('--dur', rand(4, 7) + 's');
-      el.classList.remove('on'); void el.offsetWidth; // restart push-in
-      el.classList.add('on', 'glitch');
-      setTimeout(() => el.classList.remove('glitch'), 260);
+    el.style.setProperty('--ox', rand(30, 70) + '%');
+    el.style.setProperty('--oy', rand(30, 70) + '%');
+    el.style.setProperty('--dx', rand(-2.5, 2.5) + '%');
+    el.style.setProperty('--dy', rand(-1.5, 1.5) + '%');
+    el.style.setProperty('--dur', rand(6, 9) + 's');
+    void el.offsetWidth;
+    el.classList.add('on');
+    if (hard && Math.random() < 0.35) { el.classList.add('glitch'); setTimeout(() => el.classList.remove('glitch'), 120); }
+    if (hard && Math.random() < 0.4) {
+      flash.className = 'flash ' + (Math.random() < 0.25 ? 'red' : 'black');
+      setTimeout(() => (flash.className = 'flash'), 60);
     }
-    // flash frame: mostly black, sometimes a red hit
-    flash.className = 'flash ' + (Math.random() < 0.3 ? 'red' : 'black');
-    setTimeout(() => (flash.className = 'flash'), Math.random() < 0.5 ? 70 : 120);
-    bg.classList.toggle('photo', !!el);
+  }
+
+  // passing streetlights: soft light rolling across the frame
+  const LIGHTS = ['rgba(255,150,70,.32)', 'rgba(255,120,60,.28)', 'rgba(120,255,190,.18)', 'rgba(255,60,40,.26)'];
+  function sweep() {
+    const s = document.createElement('i');
+    s.style.setProperty('--c', LIGHTS[Math.floor(Math.random() * LIGHTS.length)]);
+    s.style.setProperty('--t', rand(1.1, 2.0) + 's');
+    s.style.setProperty('--y', rand(-10, 30) + '%');
+    sweeps.appendChild(s);
+    setTimeout(() => s.remove(), 2200);
+    timer2 = setTimeout(sweep, rand(900, 2600));
   }
 
   async function run() {
-    await wait(rand(4, 6));
-    while (true) {
-      const n = Math.round(rand(BURST[0], BURST[1]));
-      bars.classList.toggle('on', Math.random() < 0.6);
-      for (let k = 0; k < n; k++) {
-        let i; do { i = Math.floor(Math.random() * shots.length); } while (i === last && shots.length > 1);
-        last = i; cut(shots[i]);
-        await wait(rand(PHOTO_HOLD[0], PHOTO_HOLD[1]));
-      }
-      cut(null); bars.classList.remove('on');
-      await wait(rand(DRIVE_HOLD[0], DRIVE_HOLD[1]));
+    if (running) return; running = true;
+    cut(nextShot(), false);
+    if (reduce) return;
+    sweep();
+    while (running) {
+      await new Promise(r => (timer = setTimeout(r, rand(HOLD[0], HOLD[1]) * 1000)));
+      if (!running) break;
+      bars.classList.toggle('on', Math.random() < 0.35);
+      cut(nextShot(), true);
     }
   }
   run();
-  document.addEventListener('visibilitychange', () => { if (document.hidden) clearTimeout(timer); else run(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { running = false; clearTimeout(timer); clearTimeout(timer2); }
+    else run();
+  });
 })();
